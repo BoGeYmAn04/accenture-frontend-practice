@@ -1,0 +1,58 @@
+/* Exercise 11 — Responsive Card Grid
+   Lay the six cards out in a responsive grid that reflows automatically as the
+   viewport changes, with a hover effect on each card. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.page {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+/* TODO (Task 1): make .grid a responsive CSS Grid:
+   repeat(auto-fill, minmax(220px, 1fr)) with a gap of about 16px. */
+.grid {
+}
+
+/* TODO (Task 2): style .card — surface background, padding, rounded corners,
+   a soft shadow and a transition on transform/shadow. */
+.card {
+}
+
+/* TODO (Task 2): on .card:hover, lift it (e.g. transform: translateY(-4px))
+   and strengthen the shadow. */
+.card:hover {
+}
+
+.thumb {
+  height: 90px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  margin-bottom: 12px;
+}
+
+.card h2 {
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+
+.card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}

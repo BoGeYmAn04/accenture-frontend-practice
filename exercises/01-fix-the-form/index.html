@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 01 — Fix the Form</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <form id="signup" class="card">
+      <h1>Create your account</h1>
+
+      <!-- TODO (Task 1): group the fields inside a <fieldset> with a <legend>. -->
+      <!-- TODO (Task 1): give every input an associated <label for="...">. -->
+
+      <!-- TODO (Task 1): text field — and it must be required. -->
+      <input type="text" id="fullname" placeholder="Full name" />
+
+      <!-- TODO (Task 1): use the correct input type for an email address. -->
+      <input type="text" id="email" placeholder="Email" />
+
+      <!-- TODO (Task 1): use the correct input type for a phone number. -->
+      <input type="text" id="phone" placeholder="Phone" />
+
+      <!-- TODO (Task 1): use the input type that masks typed characters. -->
+      <input type="text" id="password" placeholder="Password" />
+
+      <button type="submit">Sign up</button>
+      <p id="result" class="result" aria-live="polite"></p>
+    </form>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

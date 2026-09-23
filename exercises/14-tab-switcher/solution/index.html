@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 14 — Tab Switcher</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="overview" role="tab" aria-selected="true">Overview</button>
+        <button class="tab" data-tab="features" role="tab" aria-selected="false">Features</button>
+        <button class="tab" data-tab="pricing" role="tab" aria-selected="false">Pricing</button>
+      </div>
+
+      <div class="panels">
+        <div class="panel active" data-panel="overview">
+          <p>A short overview of the product and what it does.</p>
+        </div>
+        <div class="panel" data-panel="features">
+          <p>The key features: speed, accessibility and a small footprint.</p>
+        </div>
+        <div class="panel" data-panel="pricing">
+          <p>Simple, flat pricing with a generous free tier.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 07 — Form Validation</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <form id="signup" class="card" novalidate>
+      <h1>Create account</h1>
+
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="off" />
+      <p class="error" id="username-error"></p>
+
+      <label for="email">Email</label>
+      <input id="email" type="text" autocomplete="off" />
+      <p class="error" id="email-error"></p>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="off" />
+      <p class="error" id="password-error"></p>
+
+      <button type="submit">Create account</button>
+      <p id="form-msg" class="success"></p>
+    </form>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

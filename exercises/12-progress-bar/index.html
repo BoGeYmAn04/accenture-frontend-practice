@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 12 — Progress Bar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <h1>Uploading</h1>
+
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <p id="progress-label" class="label">0%</p>
+
+      <div class="spinner" aria-hidden="true"></div>
+
+      <button id="start" type="button">Start upload</button>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

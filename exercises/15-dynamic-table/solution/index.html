@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 15 — Dynamic Table</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <h1>Employees</h1>
+
+      <div class="controls">
+        <input id="filter" type="text" placeholder="Filter by name or city…" autocomplete="off" />
+        <button id="sort-name" type="button">Sort by name</button>
+        <button id="sort-age" type="button">Sort by age</button>
+      </div>
+
+      <table id="employees">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>City</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+
+      <p id="row-count" class="count"></p>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

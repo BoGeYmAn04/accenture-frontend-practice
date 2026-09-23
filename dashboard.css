@@ -1,0 +1,250 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #273449;
+  --border: #334155;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #a78bfa;
+  --accent-strong: #7c3aed;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.hero {
+  background: radial-gradient(1200px 400px at 50% -100px, rgba(124, 58, 237, 0.35), transparent),
+    var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 24px 40px;
+}
+
+.hero-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.hero-cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-cmd code {
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: #e9d5ff;
+}
+
+.hero-cmd span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 24px 0 8px;
+}
+
+.filter {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.filter.active {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px 0 40px;
+}
+
+.exercise {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.exercise:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.exercise-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.num {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.badge.easy {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+.badge.easymedium {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fde047;
+}
+
+.badge.medium {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.badge.mediumhard {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.exercise h2 {
+  font-size: 1.08rem;
+  margin: 0 0 4px;
+}
+
+.track {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.concepts {
+  margin: 0 0 16px;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.links {
+  display: flex;
+  gap: 8px;
+}
+
+.links a {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.links a:hover {
+  background: #6d28d9;
+}
+
+.links a.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.links a.ghost:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.footer {
+  padding-bottom: 48px;
+}
+
+.footer p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.footer strong {
+  color: var(--text);
+}

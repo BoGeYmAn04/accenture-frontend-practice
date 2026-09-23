@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accenture Frontend Practice — 20 exercises</title>
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Accenture UI Coding Assessment</p>
+      <h1>Frontend Machine-Coding Practice</h1>
+      <p class="lede">
+        20 vanilla HTML / CSS / JS exercises modelled on the Accenture frontend round.
+        Each folder has a <code>task.md</code> brief, pre-built files with <code>TODO</code>
+        gaps, a <code>solution/</code> folder, and an automated Playwright grader.
+      </p>
+      <div class="hero-cmd">
+        <code>npm test -- exercises/05-ecommerce-search-box</code>
+        <span>grade your work</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="filters" id="filters" aria-label="Filter by track"></nav>
+    <section class="grid" id="grid"></section>
+  </main>
+
+  <footer class="container footer">
+    <p>
+      <strong>Two of these are real reported Accenture questions:</strong>
+      Exercise 05 (E-commerce Search Box) and Exercise 17 (Live Digital Clock).
+      The frontend task in the real round is delivered as pre-built HTML/CSS/JS files you
+      modify — exactly like every exercise here.
+    </p>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

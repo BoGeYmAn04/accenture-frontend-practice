@@ -1,0 +1,56 @@
+/* Exercise 02 — Style the Profile Card
+   The HTML is complete. Your job is to write the CSS.
+   Replace every TODO with real rules. This is a CSS-only exercise. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #eef2ff;
+  color: #0f172a;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* TODO (Task 1): style .profile-card —
+   white background, rounded corners (>= 12px), padding (>= 16px),
+   a soft box-shadow, centered text, and a sensible width. */
+.profile-card {
+}
+
+/* TODO (Task 2): make .avatar a circle.
+   Give it equal width and height (>= 64px), border-radius 50%,
+   a colored background, and bold centered text. */
+.avatar {
+}
+
+/* TODO (Task 3): make .name bold (font-weight >= 600) and set a font-size. */
+.name {
+}
+
+/* TODO (Task 4): style .role in a muted color. */
+.role {
+}
+
+/* TODO (Task 5): style .tags — remove the bullet points and lay the tags
+   out in a row. Then style .tag with padding, a background color,
+   rounded corners and a smaller font-size. */
+.tags {
+}
+
+.tag {
+}
+
+/* TODO (Task 6): style .follow-btn — colored background, white text,
+   padding, rounded corners and a pointer cursor. */
+.follow-btn {
+}

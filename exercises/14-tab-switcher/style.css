@@ -1,0 +1,56 @@
+/* Exercise 14 — Tab Switcher
+   Clicking a tab shows its matching panel and hides the others. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f1f5f9;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  width: 520px;
+  max-width: 100%;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+/* TODO (Task 1): style .tab — padding, transparent background, no border,
+   a pointer cursor. */
+.tab {
+}
+
+/* TODO (Task 1): style the active tab (.tab.active) so it stands out
+   (colour + bottom border). */
+.tab.active {
+}
+
+/* TODO (Task 1): hide .panel by default and show .panel.active. */
+.panel {
+}
+
+.panel.active {
+}
+
+.panel p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}

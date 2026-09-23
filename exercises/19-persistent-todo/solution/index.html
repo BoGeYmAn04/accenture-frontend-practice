@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 19 — Persistent Notes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <h1>Notes</h1>
+
+      <form id="note-form" class="note-form">
+        <input id="note-input" type="text" placeholder="Write a note…" autocomplete="off" />
+        <button type="submit">Add</button>
+      </form>
+
+      <ul id="notes" class="notes"></ul>
+
+      <div class="footer">
+        <p id="empty" class="empty">No notes yet.</p>
+        <button id="clear" class="clear" type="button">Clear all</button>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
