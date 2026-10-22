@@ -20,7 +20,6 @@ You need Node.js and npm installed. Open PowerShell or the VS Code terminal.
 Run these commands from the project folder (also repeat them after a fresh clone):
 
 ```powershell
-cd E:\Projects\accenture-frontend-practice
 npm install
 npx playwright install chromium
 ```
