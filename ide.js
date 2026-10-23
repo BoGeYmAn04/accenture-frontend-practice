@@ -131,6 +131,92 @@ const completions = {
     "fetch"
   ]
 };
+const cssColors = ('transparent currentColor black white red green blue yellow orange purple pink gray grey silver navy teal aqua cyan lime olive maroon fuchsia magenta gold coral tomato salmon crimson indigo violet rebeccapurple chocolate brown beige ivory snow whitesmoke lightgray darkgray darkred darkgreen darkblue lightblue skyblue royalblue steelblue dodgerblue deepskyblue turquoise aquamarine seagreen forestgreen chartreuse greenyellow khaki lavender plum orchid hotpink deeppink mistyrose peachpuff tan wheat sienna slategray darkslategray aliceblue antiquewhite bisque blanchedalmond blueviolet burlywood cadetblue cornflowerblue cornsilk darkcyan darkgoldenrod darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darksalmon darkseagreen darkslateblue darkslategrey darkturquoise darkviolet dimgray dimgrey firebrick floralwhite gainsboro ghostwhite goldenrod honeydew indianred lawngreen lemonchiffon lightcoral lightcyan lightgoldenrodyellow lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow linen mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream moccasin navajowhite oldlace olivedrab orangered palegoldenrod palegreen paleturquoise palevioletred papayawhip peru powderblue rosybrown saddlebrown sandybrown seashell slateblue slategrey springgreen thistle yellowgreen rgb rgba hsl hsla').split(' ');
+const cssLengths = ['auto', '0', 'min-content', 'max-content', 'fit-content'];
+const cssValues = {
+  display: ['block', 'inline', 'inline-block', 'flex', 'inline-flex', 'grid', 'inline-grid', 'none', 'contents', 'flow-root'],
+  position: ['static', 'relative', 'absolute', 'fixed', 'sticky'],
+  'justify-content': ['center', 'flex-start', 'flex-end', 'space-between', 'space-around', 'space-evenly', 'start', 'end'],
+  'align-items': ['center', 'stretch', 'flex-start', 'flex-end', 'baseline', 'start', 'end'],
+  'align-self': ['auto', 'center', 'stretch', 'flex-start', 'flex-end', 'baseline'],
+  'align-content': ['center', 'stretch', 'space-between', 'space-around', 'space-evenly', 'flex-start', 'flex-end'],
+  'flex-direction': ['row', 'column', 'row-reverse', 'column-reverse'],
+  'flex-wrap': ['nowrap', 'wrap', 'wrap-reverse'],
+  'text-align': ['left', 'right', 'center', 'justify', 'start', 'end'],
+  'text-transform': ['uppercase', 'lowercase', 'capitalize', 'none'],
+  'text-decoration': ['none', 'underline', 'overline', 'line-through', 'solid', 'dotted', 'dashed', 'wavy', ...cssColors],
+  'font-weight': ['normal', 'bold', 'bolder', 'lighter', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  'font-style': ['normal', 'italic', 'oblique'],
+  'font-family': ['Arial', 'Verdana', 'Georgia', 'monospace', 'sans-serif', 'serif', 'system-ui', 'cursive'],
+  'font-size': ['small', 'medium', 'large', 'smaller', 'larger'],
+  overflow: ['visible', 'hidden', 'auto', 'scroll', 'clip'],
+  visibility: ['visible', 'hidden', 'collapse'],
+  cursor: ['pointer', 'default', 'auto', 'text', 'move', 'grab', 'grabbing', 'not-allowed', 'wait', 'crosshair'],
+  'box-sizing': ['border-box', 'content-box'],
+  'border-style': ['solid', 'dashed', 'dotted', 'double', 'none', 'hidden', 'groove', 'ridge', 'inset', 'outset'],
+  'border-width': ['thin', 'medium', 'thick'],
+  'background-size': ['cover', 'contain', 'auto'],
+  'background-repeat': ['no-repeat', 'repeat', 'repeat-x', 'repeat-y', 'space', 'round'],
+  'background-position': ['center', 'top', 'bottom', 'left', 'right'],
+  'object-fit': ['cover', 'contain', 'fill', 'none', 'scale-down'],
+  'white-space': ['normal', 'nowrap', 'pre', 'pre-wrap', 'pre-line', 'break-spaces'],
+  'transition-timing-function': ['ease', 'linear', 'ease-in', 'ease-out', 'ease-in-out', 'step-start', 'step-end'],
+  'animation-iteration-count': ['infinite'],
+  'animation-direction': ['normal', 'reverse', 'alternate', 'alternate-reverse'],
+  'animation-fill-mode': ['none', 'forwards', 'backwards', 'both'],
+  'animation-play-state': ['running', 'paused'],
+  'list-style-type': ['none', 'disc', 'circle', 'square', 'decimal'],
+  'grid-template-columns': ['none', 'subgrid', 'auto', 'min-content', 'max-content', 'repeat', 'minmax'],
+  'grid-auto-flow': ['row', 'column', 'dense'],
+  'scroll-behavior': ['auto', 'smooth'],
+  'user-select': ['auto', 'none', 'text', 'all']
+};
+const cssProperties = [...new Set([...completions['style.css'], ...Object.keys(cssValues),
+  'background', 'border-color', 'outline', 'outline-color', 'box-shadow', 'text-shadow',
+  'min-width', 'min-height', 'max-height', 'top', 'right', 'bottom', 'left', 'inset',
+  'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'row-gap', 'column-gap', 'line-height', 'letter-spacing', 'opacity', 'z-index',
+  'overflow-x', 'overflow-y', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+  'grid-template-rows', 'transition-duration', 'animation-duration', 'animation-delay'
+])];
+function cssSuggestionContext(before, token) {
+  // Ignore delimiters inside comments, strings and functions.
+  let segment = '', quote = '', comment = false, depth = 0;
+  for (let i = 0; i < before.length; i++) {
+    const char = before[i], next = before[i + 1];
+    if (comment) { if (char === '*' && next === '/') { comment = false; i++; segment += ' '; } continue; }
+    if (quote) { segment += char; if (char === '\\') { segment += next || ''; i++; } else if (char === quote) quote = ''; continue; }
+    if (char === '/' && next === '*') { comment = true; i++; continue; }
+    if (char === '"' || char === "'") quote = char;
+    if (char === '(') depth++;
+    if (char === ')') depth = Math.max(0, depth - 1);
+    if (!depth && '{};'.includes(char)) segment = '';
+    else segment += char;
+  }
+  if (comment || quote || depth) return { values: [], isValue: false };
+  const declaration = segment.match(/^\s*([\w-]+)\s*:\s*([\s\S]*)$/);
+  if (!declaration) return { values: cssProperties, isValue: false };
+  const property = declaration[1].toLowerCase();
+  let values = cssValues[property] || [];
+  if (/color$/.test(property) || ['fill', 'stroke', 'background'].includes(property)) values = cssColors;
+  if (/^(border|outline)(-(top|right|bottom|left))?$/.test(property)) values = [...cssValues['border-style'], ...cssValues['border-width'], ...cssColors];
+  if (['box-shadow', 'text-shadow'].includes(property)) values = ['none', 'inset', ...cssColors];
+  if (/^(overflow-[xy])$/.test(property)) values = cssValues.overflow;
+  if (property === 'grid-template-rows') values = cssValues['grid-template-columns'];
+  const length = /^(min-|max-)?(width|height)$|^(padding|margin|gap|inset|top|right|bottom|left|row-gap|column-gap|font-size|line-height|letter-spacing|flex-basis|border|outline|grid-template)/.test(property);
+  if (length) values = [...values, ...(/^(min-|max-)?(width|height)$|^(margin|inset|top|right|bottom|left|flex-basis|grid-template)/.test(property) ? cssLengths : ['0'])];
+  const numeric = token.match(/^(-?(?:\d*\.)?\d+)([a-z%]*)$/i);
+  if (numeric) {
+    const units = /(duration|delay)$/.test(property) ? ['s', 'ms'] : length ? ['px', 'rem', 'em', '%', 'vh', 'vw', 'ch', 'vmin', 'vmax', ...(property.startsWith('grid-') ? ['fr'] : [])] : [];
+    values = [...units.map(unit => numeric[1] + unit), ...values];
+  }
+  // Never append a color name inside a manually entered hex color.
+  if (/#[\da-f]*$/i.test(declaration[2])) values = [];
+  else values = [...values, 'inherit', 'initial', 'unset', 'revert'];
+  return { values: [...new Set(values)], isValue: true };
+}
+
 let suggestionState = null;
 function hideSuggestions() {
   suggestionState = null;
@@ -141,10 +227,11 @@ function showSuggestions(manual = false) {
   const editor = $('editor');
   if (editor.disabled || editor.selectionStart !== editor.selectionEnd) return hideSuggestions();
   const before = editor.value.slice(0, editor.selectionStart);
-  const token = before.match(active === 'index.html' ? /[\w-]+$/ : /[@\w$.-]+$/)?.[0] || '';
-  if (!manual && token.length < 2) return hideSuggestions();
+  const token = before.match(active === 'index.html' ? /[\w-]+$/ : active === 'style.css' ? /[@\w.%#-]+$/ : /[@\w$.-]+$/)?.[0] || '';
+  const cssContext = active === 'style.css' ? cssSuggestionContext(before, token) : null;
+  if (!manual && token.length < (cssContext?.isValue ? 0 : 2)) return hideSuggestions();
   let prefix = token, start = editor.selectionStart - token.length;
-  let options = completions[active].filter(label => label.toLowerCase().startsWith(prefix.toLowerCase()));
+  let options = (cssContext ? cssContext.values : completions[active]).filter(label => label.toLowerCase().startsWith(prefix.toLowerCase()));
   // Offer member names after an object, e.g. button.addEventListener.
   if (!options.length && active === 'script.js' && token.includes('.')) {
     prefix = token.slice(token.lastIndexOf('.') + 1);

@@ -230,3 +230,9 @@ click **Suggest** to open the list manually. Use **Up/Down** to choose,
 Selected lines still use Tab for indentation. Inserted suggestions support undo
 and redo and save with your draft. These are local prefix-based suggestions,
 not AI-generated answers or full language-server autocomplete.
+
+CSS suggestions also recognize the property before the colon: colors for
+`color`/`background-color`, layout values for `display` and `position`, border
+styles, font settings, and more. Typing a numeric prefix such as `12p` suggests
+`12px`; time properties support `s` and `ms`. Suggestions insert only the
+selected name or value and remain beside the cursor.

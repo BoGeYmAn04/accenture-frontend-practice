@@ -113,5 +113,31 @@ test('editor preserves selected lines and supports independent undo/redo per fil
     await page.setViewportSize({ width: 390, height: 844 });
     await editor.fill('dis');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    // CSS suggestions use the current property, and insert only a value/name.
+    for (const [input, value, expected] of [
+      ['.box { color: re', 'red', '.box { color: red'],
+      ['background-color: lightb', 'lightblue', 'background-color: lightblue'],
+      ['display: fl', 'flex', 'display: flex'],
+      ['position: st', 'static', 'position: static'],
+      ['border: 1px so', 'solid', 'border: 1px solid'],
+      ['border: 1px solid bl', 'black', 'border: 1px solid black'],
+      ['padding: 12p', '12px', 'padding: 12px'],
+      ['font-size: 1.5r', '1.5rem', 'font-size: 1.5rem'],
+      ['transition-duration: 200m', '200ms', 'transition-duration: 200ms'],
+      ['.box { color: red; justify-c', 'justify-content', '.box { color: red; justify-content'],
+      ['.box { /* color: red; */ display: gr', 'grid', '.box { /* color: red; */ display: grid']
+    ]) {
+      await editor.fill(input);
+      await page.getByRole('option', { name: value, exact: true }).click();
+      assert.equal(await editor.inputValue(), expected);
+      await editor.press('Control+z'); assert.equal(await editor.inputValue(), input);
+    }
+    await editor.fill('color: ');
+    await page.getByRole('option', { name: 'red', exact: true }).waitFor();
+    assert.equal(await page.getByRole('option', { name: 'display', exact: true }).count(), 0);
+    for (const input of ['color: #ff', '/* color: re', 'content: "red', 'color: rgb(12']) {
+      await editor.fill(input);
+      assert.equal(await page.locator('#suggestion-popup').isHidden(), true);
+    }
   } finally { await browser.close(); }
 });
