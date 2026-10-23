@@ -68,4 +68,4 @@ function render() {
     });
 }
 
-render();
+if (grid && filters) render();

@@ -181,11 +181,20 @@ for (const id of ['problem-tab', 'solution-tab']) {
   };
 }
 function loadQuestionInfo(exercise) {
-  if (exercise.number && exercise.total) $('question-number').textContent = 'Question ' + exercise.number + ' / ' + exercise.total;
-  $('next-question').disabled = !exercise.next;
-  $('next-question').textContent = exercise.next ? 'Next question →' : 'Last question';
+  // An already-running server may still return the older API response.
+  // Missing metadata is not proof that this is the last question.
+  const catalog = typeof exercises === 'undefined' ? [] : exercises;
+  const index = catalog.findIndex(item => item.slug === slug);
+  const hasNavigation = Object.prototype.hasOwnProperty.call(exercise, 'next');
+  const next = hasNavigation ? exercise.next : catalog[index + 1]?.slug;
+  const known = hasNavigation || index >= 0;
+  const number = exercise.number || (index >= 0 ? index + 1 : null);
+  const total = exercise.total || catalog.length;
+  if (number && total) $('question-number').textContent = 'Question ' + number + ' / ' + total;
+  $('next-question').disabled = !known || !next;
+  $('next-question').textContent = !known ? 'Navigation unavailable' : next ? 'Next question →' : 'Last question';
   $('next-question').onclick = () => {
-    if (exercise.next) location.assign('/ide.html?exercise=' + encodeURIComponent(exercise.next));
+    if (known && next) location.assign('/ide.html?exercise=' + encodeURIComponent(next));
   };
   $('solution-files').replaceChildren();
   for (const file of Object.keys(names)) {

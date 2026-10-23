@@ -14,9 +14,21 @@ test('editor preserves selected lines and supports independent undo/redo per fil
       if (pathname === '/api/exercise') return route.fulfill({ json: { task: '# Test task', files: { 'index.html': initial, 'style.css': 'body {}', 'script.js': '' } } });
       if (pathname === '/api/preview') return route.fulfill({ json: { url: 'about:blank' } });
       const name = pathname.slice(1);
-      if (!['ide.html', 'ide.js', 'ide.css'].includes(name)) return route.abort();
+      if (!['ide.html', 'ide.js', 'ide.css', 'dashboard.js'].includes(name)) return route.abort();
       return route.fulfill({ body: fs.readFileSync(path.join(__dirname, '..', name)), contentType: name.endsWith('.js') ? 'text/javascript' : name.endsWith('.css') ? 'text/css' : 'text/html' });
     });
+    await page.goto('http://ide.test/ide.html?exercise=test');
+    await page.waitForFunction(() => !document.getElementById('editor').disabled);
+    assert.equal(await page.getByRole('button', { name: 'Navigation unavailable' }).isDisabled(), true);
+    // Legacy API responses omit next/number/total, but known exercises still navigate.
+    await page.goto('http://ide.test/ide.html?exercise=03-click-counter');
+    await page.waitForFunction(() => !document.getElementById('editor').disabled);
+    assert.equal(await page.locator('#question-number').textContent(), 'Question 3 / 20');
+    await page.getByRole('button', { name: 'Next question', exact: false }).click();
+    await page.waitForURL('**exercise=04-center-it');
+    await page.goto('http://ide.test/ide.html?exercise=20-quiz');
+    await page.waitForFunction(() => !document.getElementById('editor').disabled);
+    assert.equal(await page.getByRole('button', { name: 'Last question' }).isDisabled(), true);
     await page.goto('http://ide.test/ide.html?exercise=test');
     await page.waitForFunction(() => !document.getElementById('editor').disabled);
     const editor = page.locator('#editor');
