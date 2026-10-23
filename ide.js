@@ -20,6 +20,7 @@ function remember(before) {
   stack.redo = [];
 }
 function restoreEdit(redo = false) {
+  hideSuggestions();
   const stack = history(), from = redo ? stack.redo : stack.undo, to = redo ? stack.undo : stack.redo;
   const state = from.pop();
   if (!state) return;
@@ -62,6 +63,107 @@ function indentSelection(outdent) {
   save();
 }
 
+const completions = {
+  'index.html': [
+    ['<div>', '<div>|</div>'], ['<button>', '<button type="button">|</button>'],
+    ['<input>', '<input type="text" id="|">'], ['<label>', '<label for="|">Label</label>'],
+    ['<form>', '<form id="|">\n  \n</form>'], ['<section>', '<section>|</section>'],
+    ['<span>', '<span>|</span>'], ['<p>', '<p>|</p>'], ['<ul>', '<ul>\n  <li>|</li>\n</ul>'],
+    ['<li>', '<li>|</li>'], ['<a>', '<a href="|">Link</a>'],
+    ['<script>', '<script src="script.js">|</script>'], ['<link>', '<link rel="stylesheet" href="style.css">|'],
+    ['class', 'class="|"'], ['id', 'id="|"'], ['type', 'type="|"'],
+    ['placeholder', 'placeholder="|"'], ['aria-label', 'aria-label="|"']
+  ],
+  'style.css': [
+    ['display', 'display: |;'], ['display: flex', 'display: flex;|'], ['display: grid', 'display: grid;|'],
+    ['justify-content', 'justify-content: |;'], ['align-items', 'align-items: |;'],
+    ['background-color', 'background-color: |;'], ['color', 'color: |;'],
+    ['padding', 'padding: |;'], ['margin', 'margin: |;'], ['gap', 'gap: |;'],
+    ['border', 'border: |;'], ['border-radius', 'border-radius: |;'],
+    ['font-size', 'font-size: |;'], ['font-weight', 'font-weight: |;'],
+    ['width', 'width: |;'], ['height', 'height: |;'], ['max-width', 'max-width: |;'],
+    ['position', 'position: |;'], ['transition', 'transition: |;'],
+    ['grid-template-columns', 'grid-template-columns: repeat(3, 1fr);|'],
+    ['@media', '@media (max-width: 768px) {\n  |\n}']
+  ],
+  'script.js': [
+    ['document.getElementById', "document.getElementById('|')"],
+    ['document.querySelector', "document.querySelector('|')"],
+    ['document.querySelectorAll', "document.querySelectorAll('|')"],
+    ['document.createElement', "document.createElement('|')"],
+    ['addEventListener', "addEventListener('click', (event) => {\n  |\n});"],
+    ['classList.add', "classList.add('|')"], ['classList.remove', "classList.remove('|')"],
+    ['classList.toggle', "classList.toggle('|')"], ['textContent', 'textContent = |;'],
+    ['console.log', 'console.log(|);'], ['const', 'const | = ;'], ['let', 'let | = ;'],
+    ['function', 'function |() {\n  \n}'], ['if', 'if (|) {\n  \n}'],
+    ['forEach', 'forEach((item) => {\n  |\n});'], ['preventDefault', 'preventDefault();|'],
+    ['setInterval', 'setInterval(() => {\n  |\n}, 1000);'],
+    ['setTimeout', 'setTimeout(() => {\n  |\n}, 1000);'],
+    ['JSON.parse', 'JSON.parse(|)'], ['JSON.stringify', 'JSON.stringify(|)'],
+    ['localStorage.getItem', "localStorage.getItem('|')"],
+    ['localStorage.setItem', "localStorage.setItem('|', value)"], ['fetch', "fetch('|')"]
+  ]
+};
+let suggestionState = null;
+function hideSuggestions() {
+  suggestionState = null;
+  $('suggestion-popup').hidden = true;
+  $('editor').removeAttribute('aria-activedescendant');
+}
+function showSuggestions(manual = false) {
+  const editor = $('editor');
+  if (editor.disabled || editor.selectionStart !== editor.selectionEnd) return hideSuggestions();
+  const before = editor.value.slice(0, editor.selectionStart);
+  const token = before.match(active === 'index.html' ? /<[\w-]*$|[\w-]+$/ : /[@\w$.-]+$/)?.[0] || '';
+  if (!manual && token.length < 2) return hideSuggestions();
+  let prefix = token, start = editor.selectionStart - token.length;
+  let options = completions[active].filter(([label]) => label.toLowerCase().startsWith(prefix.toLowerCase()));
+  // Offer member names after an object, e.g. button.addEventListener.
+  if (!options.length && active === 'script.js' && token.includes('.')) {
+    prefix = token.slice(token.lastIndexOf('.') + 1);
+    start = editor.selectionStart - prefix.length;
+    options = completions[active].filter(([label]) => label.toLowerCase().startsWith(prefix.toLowerCase()));
+  }
+  if (!options.length) return hideSuggestions();
+  const suffix = editor.value.slice(editor.selectionStart).match(/^[\w$-]*/)[0];
+  suggestionState = { options: options.slice(0, 8), index: 0, start, end: editor.selectionStart + suffix.length, value: editor.value };
+  $('suggestion-popup').hidden = false;
+  renderSuggestions();
+}
+function renderSuggestions() {
+  $('suggestions').replaceChildren();
+  suggestionState.options.forEach(([label], index) => {
+    const option = document.createElement('div');
+    option.id = 'suggestion-' + index;
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', String(index === suggestionState.index));
+    option.textContent = label;
+    option.addEventListener('mousedown', event => event.preventDefault());
+    option.onclick = () => acceptSuggestion(index);
+    $('suggestions').append(option);
+  });
+  const selected = $('suggestions').children[suggestionState.index];
+  $('editor').setAttribute('aria-activedescendant', selected.id);
+  selected.scrollIntoView({ block: 'nearest' });
+}
+function acceptSuggestion(index = suggestionState?.index) {
+  if (!suggestionState) return;
+  const editor = $('editor'), state = suggestionState;
+  if (editor.value !== state.value || editor.selectionStart !== editor.selectionEnd) return hideSuggestions();
+  const before = snapshotEditor();
+  const snippet = state.options[index][1], marker = snippet.indexOf('|');
+  const text = snippet.replace('|', '');
+  editor.setRangeText(text, state.start, state.end, 'end');
+  const caret = state.start + (marker < 0 ? text.length : marker);
+  editor.setSelectionRange(caret, caret);
+  remember(before); beforeEdit = null; save(); hideSuggestions(); editor.focus();
+}
+$('suggest-button').onclick = () => { $('editor').focus(); showSuggestions(true); };
+$('editor').addEventListener('blur', hideSuggestions);
+$('editor').addEventListener('select', () => {
+  if ($('editor').selectionStart !== $('editor').selectionEnd) hideSuggestions();
+});
+
 async function api(url, data) {
   const response = await fetch(url, data ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) } : {});
   const result = await response.json();
@@ -82,6 +184,7 @@ function save() {
   position();
 }
 function select(file) {
+  hideSuggestions();
   beforeEdit = null;
   active = file; $('editor').value = sources[file]; $('filename').textContent = file;
   $('editor').setAttribute('aria-label', names[file] + ' code');
@@ -142,15 +245,32 @@ $('editor').addEventListener('beforeinput', event => {
   }
   beforeEdit = snapshotEditor();
 });
-$('editor').addEventListener('input', () => {
+$('editor').addEventListener('input', event => {
   remember(beforeEdit || { value: sources[active], start: 0, end: 0, direction: 'none' });
   beforeEdit = null;
   save();
+  if (!event.isComposing) showSuggestions();
 });
 $('editor').addEventListener('scroll', () => { $('lines').scrollTop = $('editor').scrollTop; });
-$('editor').addEventListener('click', position);
+$('editor').addEventListener('click', () => { hideSuggestions(); position(); });
 $('editor').addEventListener('keyup', position);
 $('editor').addEventListener('keydown', event => {
+  if (event.isComposing) return;
+  if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
+    event.preventDefault(); showSuggestions(true); return;
+  }
+  if (suggestionState && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    if (event.key === 'Escape') { event.preventDefault(); hideSuggestions(); return; }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      suggestionState.index = (suggestionState.index + (event.key === 'ArrowDown' ? 1 : suggestionState.options.length - 1)) % suggestionState.options.length;
+      renderSuggestions(); return;
+    }
+    if ((event.key === 'Enter' || event.key === 'Tab') && !event.shiftKey && $('editor').selectionStart === $('editor').selectionEnd) {
+      event.preventDefault(); acceptSuggestion(); return;
+    }
+  }
+  if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Tab'].includes(event.key)) hideSuggestions();
   const key = event.key.toLowerCase();
   if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y')) {
     event.preventDefault(); restoreEdit(key === 'y' || event.shiftKey); return;
