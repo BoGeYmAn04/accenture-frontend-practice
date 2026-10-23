@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 4173);
 const files = ['index.html', 'style.css', 'script.js'];
-const slugs = fs.readdirSync(path.join(ROOT, 'exercises')).filter(s => /^[\w-]+$/.test(s) && fs.existsSync(path.join(ROOT, 'exercises', s, 'test.spec.js')));
+const slugs = fs.readdirSync(path.join(ROOT, 'exercises')).filter(s => /^[\w-]+$/.test(s) && fs.existsSync(path.join(ROOT, 'exercises', s, 'test.spec.js'))).sort();
 const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.md': 'text/plain', '.svg': 'image/svg+xml' };
 function send(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); }
 function serve(res, file) { fs.readFile(file, (err, data) => { res.writeHead(err ? 404 : 200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(err ? 'Not found' : data); }); }
@@ -72,7 +72,9 @@ const server = http.createServer(async (req, res) => {
         if (!slugs.includes(slug)) return send(res, 404, { error: 'Exercise not found.' });
         const dir = path.join(ROOT, 'exercises', slug);
         const sources = Object.fromEntries(files.map(f => [f, fs.existsSync(path.join(dir, f)) ? fs.readFileSync(path.join(dir, f), 'utf8') : '']));
-        return send(res, 200, { files: sources, task: fs.readFileSync(path.join(dir, 'task.md'), 'utf8') });
+        const solution = Object.fromEntries(files.map(f => [f, fs.existsSync(path.join(dir, 'solution', f)) ? fs.readFileSync(path.join(dir, 'solution', f), 'utf8') : '']));
+        const index = slugs.indexOf(slug);
+        return send(res, 200, { files: sources, solution, task: fs.readFileSync(path.join(dir, 'task.md'), 'utf8'), next: slugs[index + 1] || null, number: index + 1, total: slugs.length });
       }
       if (req.method === 'POST' && ['/api/run', '/api/preview'].includes(url.pathname)) {
         const value = await submission(req);

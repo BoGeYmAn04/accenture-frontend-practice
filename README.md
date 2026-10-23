@@ -211,3 +211,11 @@ Accenture assessment platform.
 Undo history is separate for each file and survives switching editor tabs. It
 keeps up to 200 edits during the current page session; reloading or resetting the
 draft clears the history. Saved draft contents still survive a reload.
+
+### Moving between questions and viewing solutions
+
+Use **Next question →** in the workspace header to open the next exercise. The
+button is disabled on the last question. Your drafts remain saved per exercise.
+Select **Solution** beside **Problem** to read the reference HTML, CSS, and
+JavaScript. This view does not replace your draft; Preview and Run Code continue
+to use your own editor contents. Select **Problem** to return to the task brief.

@@ -160,6 +160,43 @@ $('editor').addEventListener('keydown', event => {
   leaveEditor = false;
 });
 document.addEventListener('keydown', event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !$('run').disabled) { event.preventDefault(); run(); } });
+function showBrief(solution) {
+  $('problem-panel').hidden = solution;
+  $('solution-panel').hidden = !solution;
+  $('problem-tab').setAttribute('aria-selected', String(!solution));
+  $('solution-tab').setAttribute('aria-selected', String(solution));
+  $('problem-tab').tabIndex = solution ? -1 : 0;
+  $('solution-tab').tabIndex = solution ? 0 : -1;
+  document.querySelector('aside').scrollTop = 0;
+}
+$('problem-tab').onclick = () => showBrief(false);
+$('solution-tab').onclick = () => showBrief(true);
+for (const id of ['problem-tab', 'solution-tab']) {
+  $(id).onkeydown = event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const solution = event.key === 'End' || (event.key !== 'Home' && id === 'problem-tab');
+    showBrief(solution);
+    $(solution ? 'solution-tab' : 'problem-tab').focus();
+  };
+}
+function loadQuestionInfo(exercise) {
+  if (exercise.number && exercise.total) $('question-number').textContent = 'Question ' + exercise.number + ' / ' + exercise.total;
+  $('next-question').disabled = !exercise.next;
+  $('next-question').textContent = exercise.next ? 'Next question →' : 'Last question';
+  $('next-question').onclick = () => {
+    if (exercise.next) location.assign('/ide.html?exercise=' + encodeURIComponent(exercise.next));
+  };
+  $('solution-files').replaceChildren();
+  for (const file of Object.keys(names)) {
+    const heading = document.createElement('h3'); heading.textContent = file;
+    const source = exercise.solution?.[file];
+    const content = document.createElement(source ? 'pre' : 'p');
+    content.textContent = source || 'No reference code for this file.';
+    if (source) { content.tabIndex = 0; content.setAttribute('aria-label', names[file] + ' reference code'); }
+    $('solution-files').append(heading, content);
+  }
+}
 $('run').onclick = run;
 $('preview-button').onclick = async () => { $('preview-button').disabled = true; try { await preview(); } catch (error) { showError(error); } finally { $('preview-button').disabled = false; } };
 $('reset').onclick = () => { if (!confirm('Reset all three files to the original starter code? This replaces your saved draft.')) return; sources = { ...original }; Object.keys(histories).forEach(file => delete histories[file]); select(active); save(); $('results').replaceChildren(); $('score').textContent = 'Not run yet'; $('summary').textContent = 'Draft reset. Run Code to check the starter files.'; preview().catch(showError); };
@@ -169,7 +206,7 @@ $('reset').onclick = () => { if (!confirm('Reset all three files to the original
     original = exercise.files; sources = { ...original };
     try { const saved = JSON.parse(localStorage.getItem(storageKey)); if (saved && Object.keys(names).every(file => typeof saved[file] === 'string')) sources = Object.fromEntries(Object.keys(names).map(file => [file, saved[file]])); } catch { /* Continue with starter files if storage is unavailable. */ }
     $('title').textContent = exercise.task.split('\n')[0].replace(/^#\s*/, ''); document.title = $('title').textContent + ' · Coding workspace';
-    taskMarkdown(exercise.task); select(active);
+    taskMarkdown(exercise.task); loadQuestionInfo(exercise); select(active);
     ['editor', 'run', 'reset', 'preview-button'].forEach(id => $(id).disabled = false);
     $('save-status').textContent = 'Drafts save in this browser';
     await preview();

@@ -51,5 +51,30 @@ test('browser IDE grades actual submissions and preserves drafts and starter fil
     page.on('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Reset draft' }).click();
     assert.equal(await page.locator('#editor').inputValue(), starter['script.js'].replace(/\r\n/g, '\n'));
+    await page.locator('#editor').fill('// My saved draft');
+    await page.getByRole('tab', { name: 'Solution', exact: true }).click();
+    assert.equal(await page.locator('#solution-panel').isVisible(), true);
+    assert.equal(await page.getByLabel('JavaScript reference code', { exact: true }).textContent(), solution['script.js']);
+    assert.equal(await page.locator('#editor').inputValue(), '// My saved draft');
+    assert.equal(await page.locator('#problem-panel').isVisible(), false);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.getByRole('tab', { name: 'Solution', exact: true }).press('ArrowLeft');
+    assert.equal(await page.locator('#problem-panel').isVisible(), true);
+    await page.getByRole('button', { name: 'Next question', exact: false }).click();
+    await page.waitForURL('**/ide.html?exercise=04-center-it');
+    await page.waitForFunction(() => !document.getElementById('run').disabled);
+    assert.equal(await page.locator('#question-number').textContent(), 'Question 4 / 20');
+    await page.goBack();
+    await page.waitForFunction(() => !document.getElementById('run').disabled);
+    await page.getByRole('tab', { name: 'JavaScript', exact: true }).click();
+    assert.equal(await page.locator('#editor').inputValue(), '// My saved draft');
+    await page.goto(origin + '/ide.html?exercise=20-quiz');
+    await page.waitForFunction(() => !document.getElementById('run').disabled);
+    assert.equal(await page.getByRole('button', { name: 'Last question' }).isDisabled(), true);
+    await page.goto(origin + '/ide.html?exercise=02-style-the-profile-card');
+    await page.waitForFunction(() => !document.getElementById('run').disabled);
+    await page.getByRole('tab', { name: 'Solution', exact: true }).click();
+    assert.equal(await page.getByText('No reference code for this file.', { exact: true }).count(), 1);
+
   } finally { await browser?.close(); server.kill(); }
 });
