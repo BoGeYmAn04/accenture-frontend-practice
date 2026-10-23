@@ -317,7 +317,57 @@ async function api(url, data) {
   if (!response.ok) throw new Error(result.error || 'Request failed.');
   return result;
 }
+let highlightedValue = null, highlightedFile = null;
+function highlightCode() {
+  const value = $('editor').value;
+  if (value === highlightedValue && active === highlightedFile) return;
+  highlightedValue = value; highlightedFile = active;
+  const rules = active === 'index.html'
+    ? /(?<comment><!--[\s\S]*?(?:-->|$))|(?<string>"[^"\n]*"?|'[^'\n]*'?)|(?<tag><\/?[\w:-]+|\/?>)|(?<property>[\w:-]+(?=\s*=))|(?<punctuation>=)/g
+    : active === 'style.css'
+      ? /(?<comment>\/\*[\s\S]*?(?:\*\/|$))|(?<string>"(?:\\.|[^"\\])*"?|'(?:\\.|[^'\\])*'?)|(?<property>--?[\w-]+(?=\s*:)|[a-zA-Z][\w-]*(?=\s*:))|(?<number>#[\da-fA-F]{3,8}\b|-?\b\d+(?:\.\d+)?(?:px|rem|em|vh|vw|fr|ms|s|%)?)|(?<keyword>@[\w-]+|!important)|(?<function>[\w-]+(?=\())|(?<punctuation>[{}:;(),])/g
+      : /(?<comment>\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|(?<string>"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?|`(?:\\.|[^`\\])*`?)|(?<keyword>\b(?:const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|class|extends|this|async|await|try|catch|finally|throw|import|export|from|typeof|instanceof|true|false|null|undefined)\b)|(?<number>\b(?:0x[\da-fA-F]+|\d+(?:\.\d+)?)\b)|(?<function>[\w$]+(?=\s*\())|(?<punctuation>[{}()[\];,.=+\-*/<>!?:&|])/g;
+  const fragment = document.createDocumentFragment();
+  let offset = 0;
+  for (const match of value.matchAll(rules)) {
+    fragment.append(document.createTextNode(value.slice(offset, match.index)));
+    const span = document.createElement('span');
+    span.className = 'syntax-' + Object.keys(match.groups).find(key => match.groups[key] !== undefined);
+    // Source is always text, including HTML tags and script content.
+    span.textContent = match[0]; fragment.append(span);
+    offset = match.index + match[0].length;
+  }
+  fragment.append(document.createTextNode(value.slice(offset) + (value.endsWith('\n') ? '\n' : '')));
+  $('highlight').replaceChildren(fragment);
+  syncHighlight();
+}
+function syncHighlight() {
+  const editor = $('editor'), layer = $('highlight');
+  layer.style.width = editor.clientWidth + 'px';
+  layer.style.height = editor.clientHeight + 'px';
+  layer.scrollTop = editor.scrollTop;
+  layer.scrollLeft = editor.scrollLeft;
+}
+function insertIndentedLine() {
+  const editor = $('editor'), before = snapshotEditor();
+  const lineStart = before.start === 0 ? 0 : before.value.lastIndexOf('\n', before.start - 1) + 1;
+  const indent = before.value.slice(lineStart, before.start).match(/^[\t ]*/)[0];
+  editor.setRangeText('\n' + indent, before.start, before.end, 'end');
+  remember(before); beforeEdit = null; hideSuggestions(); save();
+  // Keep the new line visible when typing at the bottom of the editor.
+  const style = getComputedStyle(editor), lineHeight = parseFloat(style.lineHeight);
+  const line = editor.value.slice(0, editor.selectionStart).split('\n').length - 1;
+  const top = parseFloat(style.paddingTop) + line * lineHeight;
+  if (top + lineHeight > editor.scrollTop + editor.clientHeight) editor.scrollTop = top + lineHeight - editor.clientHeight;
+  if (top < editor.scrollTop) editor.scrollTop = top;
+  editor.scrollLeft = 0;
+  syncHighlight();
+}
+$('editor').addEventListener('scroll', syncHighlight);
+new ResizeObserver(syncHighlight).observe($('editor'));
+
 function position() {
+  highlightCode();
   const before = $('editor').value.slice(0, $('editor').selectionStart).split('\n');
   $('position').textContent = `Ln ${before.length}, Col ${before.at(-1).length + 1}`;
   $('lines').textContent = Array.from({ length: $('editor').value.split('\n').length }, (_, i) => i + 1).join('\n');
@@ -421,6 +471,9 @@ $('editor').addEventListener('keydown', event => {
   const key = event.key.toLowerCase();
   if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y')) {
     event.preventDefault(); restoreEdit(key === 'y' || event.shiftKey); return;
+  }
+  if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    event.preventDefault(); insertIndentedLine(); return;
   }
   if (event.key === 'Escape') { leaveEditor = true; return; }
   if (event.key === 'Tab' && !leaveEditor) { event.preventDefault(); indentSelection(event.shiftKey); }

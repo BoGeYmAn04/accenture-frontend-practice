@@ -139,5 +139,43 @@ test('editor preserves selected lines and supports independent undo/redo per fil
       await editor.fill(input);
       assert.equal(await page.locator('#suggestion-popup').isHidden(), true);
     }
+    // Syntax colors must preserve source text and never execute HTML.
+    for (const [tab, source, tokenClass] of [
+      ['HTML', '<button class="primary">Click</button>', 'syntax-tag'],
+      ['CSS', '.box { color: #ff0000; padding: 12px; }', 'syntax-property'],
+      ['JavaScript', 'const count = 42; // counter', 'syntax-keyword']
+    ]) {
+      await page.getByRole('tab', { name: tab, exact: true }).click();
+      await editor.fill(source);
+      assert.equal(await page.locator('#highlight').textContent(), source);
+      assert.ok(await page.locator('#highlight .' + tokenClass).count() > 0);
+      assert.equal(await editor.inputValue(), source);
+    }
+    await page.getByRole('tab', { name: 'HTML', exact: true }).click();
+    await editor.fill('<img src=x onerror="window.injected=true">');
+    assert.equal(await page.locator('#highlight img').count(), 0);
+    assert.equal(await page.evaluate(() => window.injected), undefined);
+    for (const tab of ['HTML', 'CSS', 'JavaScript']) {
+      await page.getByRole('tab', { name: tab, exact: true }).click();
+      await editor.fill('    example;');
+      await editor.press('Enter');
+      assert.equal(await editor.inputValue(), '    example;\n    ');
+      await editor.press('Control+z'); assert.equal(await editor.inputValue(), '    example;');
+      await editor.press('Control+y'); assert.equal(await editor.inputValue(), '    example;\n    ');
+    }
+    await editor.fill('\t\tvalue;'); await editor.press('Enter');
+    assert.equal(await editor.inputValue(), '\t\tvalue;\n\t\t');
+    await editor.fill('    first; second;');
+    await editor.evaluate(el => el.setSelectionRange(10, 10));
+    await editor.press('Enter');
+    assert.equal(await editor.inputValue(), '    first;\n     second;');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await editor.fill(('    const value = 123; // ' + 'long '.repeat(80) + '\n').repeat(70));
+    await editor.evaluate(el => { el.scrollTop = 400; el.scrollLeft = 200; el.dispatchEvent(new Event('scroll')); });
+    const scroll = await editor.evaluate(el => ({ top: el.scrollTop, left: el.scrollLeft }));
+    assert.deepEqual(await page.locator('#highlight').evaluate(el => ({ top: el.scrollTop, left: el.scrollLeft })), scroll);
+    await editor.fill('const button = document.querySelector("button");\n\n// Update the counter when clicked\nbutton.addEventListener("click", () => {\n  const count = 42;\n  console.log(count);\n});');
+    await editor.evaluate(el => { el.scrollTop = 0; el.scrollLeft = 0; el.dispatchEvent(new Event('scroll')); });
+    await page.locator('.workspace').screenshot({ path: 'test-results/editor-colors.png' });
   } finally { await browser.close(); }
 });

@@ -236,3 +236,11 @@ CSS suggestions also recognize the property before the colon: colors for
 styles, font settings, and more. Typing a numeric prefix such as `12p` suggests
 `12px`; time properties support `s` and `ms`. Suggestions insert only the
 selected name or value and remain beside the cursor.
+
+### Syntax colors and new lines
+
+HTML tags, CSS properties, JavaScript keywords, strings, comments, and numbers
+are highlighted in different colors. Enter continues the current line’s leading
+spaces or tabs on the new line. Undo/redo includes the newline and indentation
+as one edit. When suggestions are open, Enter accepts the selected suggestion;
+press Escape first to dismiss them and insert a new line.
