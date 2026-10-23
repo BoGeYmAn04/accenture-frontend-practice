@@ -223,7 +223,8 @@ to use your own editor contents. Select **Problem** to return to the task brief.
 ### Code suggestions
 
 The editor offers built-in HTML tags and attributes, CSS properties, and common
-JavaScript/DOM snippets as you type. Press **Ctrl+Space** (or **Cmd+Space**) or
+JavaScript/DOM names as you type. Suggestions appear beside the text cursor and
+insert only the selected name, without arguments, punctuation, or full snippets. Press **Ctrl+Space** (or **Cmd+Space**) or
 click **Suggest** to open the list manually. Use **Up/Down** to choose,
 **Enter/Tab** to insert, or **Escape** to dismiss. You can also click a suggestion.
 Selected lines still use Tab for indentation. Inserted suggestions support undo

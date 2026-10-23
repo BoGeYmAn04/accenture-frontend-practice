@@ -64,44 +64,71 @@ function indentSelection(outdent) {
 }
 
 const completions = {
-  'index.html': [
-    ['<div>', '<div>|</div>'], ['<button>', '<button type="button">|</button>'],
-    ['<input>', '<input type="text" id="|">'], ['<label>', '<label for="|">Label</label>'],
-    ['<form>', '<form id="|">\n  \n</form>'], ['<section>', '<section>|</section>'],
-    ['<span>', '<span>|</span>'], ['<p>', '<p>|</p>'], ['<ul>', '<ul>\n  <li>|</li>\n</ul>'],
-    ['<li>', '<li>|</li>'], ['<a>', '<a href="|">Link</a>'],
-    ['<script>', '<script src="script.js">|</script>'], ['<link>', '<link rel="stylesheet" href="style.css">|'],
-    ['class', 'class="|"'], ['id', 'id="|"'], ['type', 'type="|"'],
-    ['placeholder', 'placeholder="|"'], ['aria-label', 'aria-label="|"']
+  "index.html": [
+    "div",
+    "button",
+    "input",
+    "label",
+    "form",
+    "section",
+    "span",
+    "p",
+    "ul",
+    "li",
+    "a",
+    "script",
+    "link",
+    "class",
+    "id",
+    "type",
+    "placeholder",
+    "aria-label"
   ],
-  'style.css': [
-    ['display', 'display: |;'], ['display: flex', 'display: flex;|'], ['display: grid', 'display: grid;|'],
-    ['justify-content', 'justify-content: |;'], ['align-items', 'align-items: |;'],
-    ['background-color', 'background-color: |;'], ['color', 'color: |;'],
-    ['padding', 'padding: |;'], ['margin', 'margin: |;'], ['gap', 'gap: |;'],
-    ['border', 'border: |;'], ['border-radius', 'border-radius: |;'],
-    ['font-size', 'font-size: |;'], ['font-weight', 'font-weight: |;'],
-    ['width', 'width: |;'], ['height', 'height: |;'], ['max-width', 'max-width: |;'],
-    ['position', 'position: |;'], ['transition', 'transition: |;'],
-    ['grid-template-columns', 'grid-template-columns: repeat(3, 1fr);|'],
-    ['@media', '@media (max-width: 768px) {\n  |\n}']
+  "style.css": [
+    "display",
+    "justify-content",
+    "align-items",
+    "background-color",
+    "color",
+    "padding",
+    "margin",
+    "gap",
+    "border",
+    "border-radius",
+    "font-size",
+    "font-weight",
+    "width",
+    "height",
+    "max-width",
+    "position",
+    "transition",
+    "grid-template-columns",
+    "@media"
   ],
-  'script.js': [
-    ['document.getElementById', "document.getElementById('|')"],
-    ['document.querySelector', "document.querySelector('|')"],
-    ['document.querySelectorAll', "document.querySelectorAll('|')"],
-    ['document.createElement', "document.createElement('|')"],
-    ['addEventListener', "addEventListener('click', (event) => {\n  |\n});"],
-    ['classList.add', "classList.add('|')"], ['classList.remove', "classList.remove('|')"],
-    ['classList.toggle', "classList.toggle('|')"], ['textContent', 'textContent = |;'],
-    ['console.log', 'console.log(|);'], ['const', 'const | = ;'], ['let', 'let | = ;'],
-    ['function', 'function |() {\n  \n}'], ['if', 'if (|) {\n  \n}'],
-    ['forEach', 'forEach((item) => {\n  |\n});'], ['preventDefault', 'preventDefault();|'],
-    ['setInterval', 'setInterval(() => {\n  |\n}, 1000);'],
-    ['setTimeout', 'setTimeout(() => {\n  |\n}, 1000);'],
-    ['JSON.parse', 'JSON.parse(|)'], ['JSON.stringify', 'JSON.stringify(|)'],
-    ['localStorage.getItem', "localStorage.getItem('|')"],
-    ['localStorage.setItem', "localStorage.setItem('|', value)"], ['fetch', "fetch('|')"]
+  "script.js": [
+    "document.getElementById",
+    "document.querySelector",
+    "document.querySelectorAll",
+    "document.createElement",
+    "addEventListener",
+    "classList.add",
+    "classList.remove",
+    "classList.toggle",
+    "textContent",
+    "console.log",
+    "const",
+    "let",
+    "function",
+    "if",
+    "forEach",
+    "preventDefault",
+    "setInterval",
+    "setTimeout",
+    "JSON.parse",
+    "JSON.stringify",
+    "localStorage.getItem",
+    "localStorage.setItem",
+    "fetch"
   ]
 };
 let suggestionState = null;
@@ -114,15 +141,15 @@ function showSuggestions(manual = false) {
   const editor = $('editor');
   if (editor.disabled || editor.selectionStart !== editor.selectionEnd) return hideSuggestions();
   const before = editor.value.slice(0, editor.selectionStart);
-  const token = before.match(active === 'index.html' ? /<[\w-]*$|[\w-]+$/ : /[@\w$.-]+$/)?.[0] || '';
+  const token = before.match(active === 'index.html' ? /[\w-]+$/ : /[@\w$.-]+$/)?.[0] || '';
   if (!manual && token.length < 2) return hideSuggestions();
   let prefix = token, start = editor.selectionStart - token.length;
-  let options = completions[active].filter(([label]) => label.toLowerCase().startsWith(prefix.toLowerCase()));
+  let options = completions[active].filter(label => label.toLowerCase().startsWith(prefix.toLowerCase()));
   // Offer member names after an object, e.g. button.addEventListener.
   if (!options.length && active === 'script.js' && token.includes('.')) {
     prefix = token.slice(token.lastIndexOf('.') + 1);
     start = editor.selectionStart - prefix.length;
-    options = completions[active].filter(([label]) => label.toLowerCase().startsWith(prefix.toLowerCase()));
+    options = completions[active].filter(label => label.toLowerCase().startsWith(prefix.toLowerCase()));
   }
   if (!options.length) return hideSuggestions();
   const suffix = editor.value.slice(editor.selectionStart).match(/^[\w$-]*/)[0];
@@ -132,7 +159,7 @@ function showSuggestions(manual = false) {
 }
 function renderSuggestions() {
   $('suggestions').replaceChildren();
-  suggestionState.options.forEach(([label], index) => {
+  suggestionState.options.forEach((label, index) => {
     const option = document.createElement('div');
     option.id = 'suggestion-' + index;
     option.setAttribute('role', 'option');
@@ -144,20 +171,53 @@ function renderSuggestions() {
   });
   const selected = $('suggestions').children[suggestionState.index];
   $('editor').setAttribute('aria-activedescendant', selected.id);
-  selected.scrollIntoView({ block: 'nearest' });
+  const list = $('suggestions');
+  const itemRect = selected.getBoundingClientRect(), listRect = list.getBoundingClientRect();
+  if (itemRect.top < listRect.top) list.scrollTop -= listRect.top - itemRect.top;
+  if (itemRect.bottom > listRect.bottom) list.scrollTop += itemRect.bottom - listRect.bottom;
+  positionSuggestions();
 }
 function acceptSuggestion(index = suggestionState?.index) {
   if (!suggestionState) return;
   const editor = $('editor'), state = suggestionState;
   if (editor.value !== state.value || editor.selectionStart !== editor.selectionEnd) return hideSuggestions();
   const before = snapshotEditor();
-  const snippet = state.options[index][1], marker = snippet.indexOf('|');
-  const text = snippet.replace('|', '');
-  editor.setRangeText(text, state.start, state.end, 'end');
-  const caret = state.start + (marker < 0 ? text.length : marker);
-  editor.setSelectionRange(caret, caret);
+  editor.setRangeText(state.options[index], state.start, state.end, 'end');
   remember(before); beforeEdit = null; save(); hideSuggestions(); editor.focus();
 }
+// Measure the caret using a hidden copy with identical textarea typography.
+function positionSuggestions() {
+  if (!suggestionState) return;
+  const editor = $('editor'), popup = $('suggestion-popup');
+  const mirror = document.createElement('div'), caret = document.createElement('span');
+  const style = getComputedStyle(editor);
+  for (const property of ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing', 'tabSize', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderLeftWidth', 'boxSizing']) mirror.style[property] = style[property];
+  Object.assign(mirror.style, { position: 'fixed', visibility: 'hidden', whiteSpace: 'pre', top: '0', left: '0', width: editor.clientWidth + 'px', pointerEvents: 'none' });
+  mirror.textContent = editor.value.slice(0, editor.selectionStart);
+  caret.textContent = '\u200b'; mirror.append(caret); document.body.append(mirror);
+  const rect = caret.getBoundingClientRect(), base = mirror.getBoundingClientRect();
+  const x = rect.left - base.left - editor.scrollLeft;
+  const y = rect.top - base.top - editor.scrollTop;
+  mirror.remove();
+  const line = parseFloat(style.lineHeight);
+  if (x < 0 || x > editor.clientWidth || y < -line || y > editor.clientHeight) {
+    popup.hidden = true; return;
+  }
+  popup.hidden = false;
+  const wrap = editor.parentElement;
+  const width = Math.min(310, wrap.clientWidth - 16);
+  popup.style.width = width + 'px';
+  const left = Math.max(8, Math.min(editor.offsetLeft + x, wrap.clientWidth - width - 8));
+  const below = editor.offsetTop + y + line + 4;
+  const above = editor.offsetTop + y - 4;
+  const useAbove = wrap.clientHeight - below < 140 && above > wrap.clientHeight - below;
+  const available = Math.max(50, useAbove ? above - 8 : wrap.clientHeight - below - 8);
+  $('suggestions').style.maxHeight = Math.min(210, available - 30) + 'px';
+  popup.style.left = left + 'px';
+  popup.style.top = Math.max(8, useAbove ? above - popup.offsetHeight : below) + 'px';
+}
+$('editor').addEventListener('scroll', positionSuggestions);
+new ResizeObserver(positionSuggestions).observe($('editor'));
 $('suggest-button').onclick = () => { $('editor').focus(); showSuggestions(true); };
 $('editor').addEventListener('blur', hideSuggestions);
 $('editor').addEventListener('select', () => {
