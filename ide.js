@@ -3,6 +3,65 @@ const slug = new URLSearchParams(location.search).get('exercise');
 const storageKey = `frontend-practice:draft:${slug}`;
 let sources = {}, original = {}, active = 'index.html', revision = 0, busy = false, leaveEditor = false;
 const names = { 'index.html': 'HTML', 'style.css': 'CSS', 'script.js': 'JavaScript' };
+// Keep histories per file: assigning textarea.value when switching tabs clears
+// the browser's native undo stack, and setRangeText does not create undo steps.
+const histories = {};
+let beforeEdit = null;
+function snapshotEditor() {
+  const editor = $('editor');
+  return { value: editor.value, start: editor.selectionStart, end: editor.selectionEnd, direction: editor.selectionDirection };
+}
+function history() { return histories[active] ||= { undo: [], redo: [] }; }
+function remember(before) {
+  if (!before || before.value === $('editor').value) return;
+  const stack = history();
+  stack.undo.push(before);
+  if (stack.undo.length > 200) stack.undo.shift();
+  stack.redo = [];
+}
+function restoreEdit(redo = false) {
+  const stack = history(), from = redo ? stack.redo : stack.undo, to = redo ? stack.undo : stack.redo;
+  const state = from.pop();
+  if (!state) return;
+  to.push(snapshotEditor());
+  $('editor').value = state.value;
+  $('editor').setSelectionRange(state.start, state.end, state.direction);
+  beforeEdit = null;
+  save();
+}
+function indentSelection(outdent) {
+  const editor = $('editor'), before = snapshotEditor();
+  const { value, start, end } = before;
+  if (start === end && !outdent) {
+    editor.setRangeText('  ', start, end, 'end');
+  } else {
+    const first = start === 0 ? 0 : value.lastIndexOf('\n', start - 1) + 1;
+    // A selection ending at the next line's start does not include that line.
+    const last = end > start && value[end - 1] === '\n' ? end - 1 : end;
+    const newline = value.indexOf('\n', last);
+    const limit = newline === -1 ? value.length : newline;
+    const lines = value.slice(first, limit).split('\n');
+    let offset = first;
+    const edits = lines.map(line => {
+      const remove = outdent ? (line.match(/^( {1,2}|\t)/)?.[0].length || 0) : 0;
+      const edit = { at: offset, remove, insert: outdent ? '' : '  ' };
+      offset += line.length + 1;
+      return edit;
+    });
+    function move(position) {
+      return position + edits.reduce((delta, edit) => {
+        if (edit.at > position) return delta;
+        return delta + edit.insert.length - Math.min(edit.remove, position - edit.at);
+      }, 0);
+    }
+    const replacement = lines.map((line, i) => edits[i].insert + line.slice(edits[i].remove)).join('\n');
+    editor.setRangeText(replacement, first, limit, 'preserve');
+    editor.setSelectionRange(move(start), move(end), before.direction);
+  }
+  remember(before);
+  save();
+}
+
 async function api(url, data) {
   const response = await fetch(url, data ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) } : {});
   const result = await response.json();
@@ -23,6 +82,7 @@ function save() {
   position();
 }
 function select(file) {
+  beforeEdit = null;
   active = file; $('editor').value = sources[file]; $('filename').textContent = file;
   $('editor').setAttribute('aria-label', names[file] + ' code');
   document.querySelectorAll('[data-file]').forEach(button => { button.setAttribute('aria-selected', String(button.dataset.file === file)); button.tabIndex = button.dataset.file === file ? 0 : -1; });
@@ -76,19 +136,33 @@ document.querySelectorAll('[data-file]').forEach(button => {
   button.onclick = () => select(button.dataset.file);
   button.onkeydown = event => { if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return; event.preventDefault(); const tabs = [...document.querySelectorAll('[data-file]')]; const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : 2)) % 3]; next.click(); next.focus(); };
 });
-$('editor').addEventListener('input', save);
+$('editor').addEventListener('beforeinput', event => {
+  if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
+    event.preventDefault(); restoreEdit(event.inputType === 'historyRedo'); return;
+  }
+  beforeEdit = snapshotEditor();
+});
+$('editor').addEventListener('input', () => {
+  remember(beforeEdit || { value: sources[active], start: 0, end: 0, direction: 'none' });
+  beforeEdit = null;
+  save();
+});
 $('editor').addEventListener('scroll', () => { $('lines').scrollTop = $('editor').scrollTop; });
 $('editor').addEventListener('click', position);
 $('editor').addEventListener('keyup', position);
 $('editor').addEventListener('keydown', event => {
+  const key = event.key.toLowerCase();
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y')) {
+    event.preventDefault(); restoreEdit(key === 'y' || event.shiftKey); return;
+  }
   if (event.key === 'Escape') { leaveEditor = true; return; }
-  if (event.key === 'Tab' && !leaveEditor && !event.shiftKey) { event.preventDefault(); $('editor').setRangeText('  ', $('editor').selectionStart, $('editor').selectionEnd, 'end'); save(); }
+  if (event.key === 'Tab' && !leaveEditor) { event.preventDefault(); indentSelection(event.shiftKey); }
   leaveEditor = false;
 });
 document.addEventListener('keydown', event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !$('run').disabled) { event.preventDefault(); run(); } });
 $('run').onclick = run;
 $('preview-button').onclick = async () => { $('preview-button').disabled = true; try { await preview(); } catch (error) { showError(error); } finally { $('preview-button').disabled = false; } };
-$('reset').onclick = () => { if (!confirm('Reset all three files to the original starter code? This replaces your saved draft.')) return; sources = { ...original }; select(active); save(); $('results').replaceChildren(); $('score').textContent = 'Not run yet'; $('summary').textContent = 'Draft reset. Run Code to check the starter files.'; preview().catch(showError); };
+$('reset').onclick = () => { if (!confirm('Reset all three files to the original starter code? This replaces your saved draft.')) return; sources = { ...original }; Object.keys(histories).forEach(file => delete histories[file]); select(active); save(); $('results').replaceChildren(); $('score').textContent = 'Not run yet'; $('summary').textContent = 'Draft reset. Run Code to check the starter files.'; preview().catch(showError); };
 (async () => {
   try {
     const exercise = await api('/api/exercise?slug=' + encodeURIComponent(slug));

@@ -199,3 +199,15 @@ The local server accepts one grading run at a time, with a 150-second test-suite
 limit. It listens on loopback only and is intended for personal practice, not a
 public multi-user judge. This is an independent practice tool, not an official
 Accenture assessment platform.
+
+### Editor shortcuts
+
+- **Tab:** insert two spaces at the cursor, or indent every selected line.
+- **Shift+Tab:** remove one indentation level from the current or selected lines.
+- **Ctrl+Z / Cmd+Z:** undo the last edit in the active file.
+- **Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z:** redo.
+- **Escape, then Tab:** move keyboard focus out of the editor.
+
+Undo history is separate for each file and survives switching editor tabs. It
+keeps up to 200 edits during the current page session; reloading or resetting the
+draft clears the history. Saved draft contents still survive a reload.
