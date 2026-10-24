@@ -76,5 +76,44 @@ test('browser IDE grades actual submissions and preserves drafts and starter fil
     await page.getByRole('tab', { name: 'Solution', exact: true }).click();
     assert.equal(await page.getByText('No reference code for this file.', { exact: true }).count(), 1);
 
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(origin + '/ide.html?exercise=10-responsive-navbar');
+    await page.waitForFunction(() => !document.getElementById('run').disabled);
+    const navbar = files('10-responsive-navbar', true);
+    for (const [file, label] of [['index.html', 'HTML'], ['style.css', 'CSS'], ['script.js', 'JavaScript']]) {
+      await page.getByRole('tab', { name: label, exact: true }).click();
+      await page.locator('#editor').fill(navbar[file]);
+    }
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    const frame = page.frameLocator('#preview');
+    await frame.locator('.nav-toggle').waitFor({ state: 'attached' });
+    await page.locator('#preview-device').selectOption('1280');
+    await frame.locator('.nav-toggle').waitFor({ state: 'hidden' });
+    assert.equal(await frame.locator('body').evaluate(() => innerWidth), 1280);
+    await frame.locator('body').evaluate(() => { window.previewState = 'preserved'; });
+    await page.locator('#preview-device').selectOption('390');
+    await frame.locator('.nav-toggle').waitFor({ state: 'visible' });
+    assert.equal(await frame.locator('body').evaluate(() => innerWidth), 390);
+    await frame.locator('.nav-toggle').click();
+    await frame.locator('.nav-links').waitFor({ state: 'visible' });
+    await page.locator('#preview-device').selectOption('768');
+    await frame.locator('.nav-toggle').waitFor({ state: 'hidden' });
+    assert.equal(await frame.locator('body').evaluate(() => innerWidth), 768);
+    await page.getByLabel('Preview width in pixels').fill('600');
+    await page.getByLabel('Preview width in pixels').press('Tab');
+    await frame.locator('.nav-toggle').waitFor({ state: 'visible' });
+    await page.getByLabel('Preview width in pixels').fill('601');
+    await page.getByLabel('Preview width in pixels').press('Tab');
+    await frame.locator('.nav-toggle').waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: 'Expand preview', exact: true }).click();
+    assert.equal(await page.locator('.output').evaluate(el => el.classList.contains('expanded')), true);
+    assert.equal(await frame.locator('body').evaluate(() => window.previewState), 'preserved');
+    await page.locator('.output').screenshot({ path: 'test-results/responsive-preview.png' });
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('.output').evaluate(el => el.classList.contains('expanded')), false);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#preview-device').selectOption('1280');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+
   } finally { await browser?.close(); server.kill(); }
 });

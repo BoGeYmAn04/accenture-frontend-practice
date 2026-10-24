@@ -244,3 +244,16 @@ are highlighted in different colors. Enter continues the current line’s leadin
 spaces or tabs on the new line. Undo/redo includes the newline and indentation
 as one edit. When suggestions are open, Enter accepts the selected suggestion;
 press Escape first to dismiss them and insert a new line.
+
+### Responsive preview and block indentation
+
+Use the preview’s Device menu to switch between Mobile (390px), Tablet (768px),
+and Desktop (1280px), or enter a custom width from 320 to 1920px. These controls
+change the page’s actual viewport so media queries respond. Large previews scale
+to fit the panel; the size and scale are shown above them. **Expand preview** gives
+you more room; press Escape or the close button to return. Resizing keeps the
+preview’s current state. Click Preview after editing to load your latest code.
+
+Enter after an opening brace adds one indentation level (two spaces, or a tab
+when the current indentation uses tabs). With the cursor between `{}`, Enter
+places the closing brace on its own line and leaves the cursor indented inside.

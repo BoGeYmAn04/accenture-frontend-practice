@@ -177,5 +177,17 @@ test('editor preserves selected lines and supports independent undo/redo per fil
     await editor.fill('const button = document.querySelector("button");\n\n// Update the counter when clicked\nbutton.addEventListener("click", () => {\n  const count = 42;\n  console.log(count);\n});');
     await editor.evaluate(el => { el.scrollTop = 0; el.scrollLeft = 0; el.dispatchEvent(new Event('scroll')); });
     await page.locator('.workspace').screenshot({ path: 'test-results/editor-colors.png' });
+    for (const tab of ['CSS', 'JavaScript']) {
+      await page.getByRole('tab', { name: tab, exact: true }).click();
+      await editor.fill('  .block {}');
+      await editor.press('ArrowLeft');
+      await editor.press('Enter');
+      assert.equal(await editor.inputValue(), '  .block {\n    \n  }');
+      assert.equal(await editor.evaluate(el => el.selectionStart), 15);
+      await editor.press('Control+z'); assert.equal(await editor.inputValue(), '  .block {}');
+      await editor.press('Control+y'); assert.equal(await editor.inputValue(), '  .block {\n    \n  }');
+      await editor.fill('\tif (true) {'); await editor.press('Enter');
+      assert.equal(await editor.inputValue(), '\tif (true) {\n\t\t');
+    }
   } finally { await browser.close(); }
 });

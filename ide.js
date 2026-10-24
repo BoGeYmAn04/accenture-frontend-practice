@@ -352,7 +352,14 @@ function insertIndentedLine() {
   const editor = $('editor'), before = snapshotEditor();
   const lineStart = before.start === 0 ? 0 : before.value.lastIndexOf('\n', before.start - 1) + 1;
   const indent = before.value.slice(lineStart, before.start).match(/^[\t ]*/)[0];
-  editor.setRangeText('\n' + indent, before.start, before.end, 'end');
+  const opensBlock = before.value.slice(lineStart, before.start).trimEnd().endsWith('{');
+  const unit = indent.includes('\t') ? '\t' : '  ';
+  const nextIndent = indent + (opensBlock ? unit : '');
+  const closing = opensBlock && before.value.slice(before.end).match(/^([\t ]*)}/);
+  const insertion = '\n' + nextIndent + (closing ? '\n' + indent : '');
+  editor.setRangeText(insertion, before.start, before.end + (closing ? closing[1].length : 0), 'end');
+  const caret = before.start + 1 + nextIndent.length;
+  editor.setSelectionRange(caret, caret);
   remember(before); beforeEdit = null; hideSuggestions(); save();
   // Keep the new line visible when typing at the bottom of the editor.
   const style = getComputedStyle(editor), lineHeight = parseFloat(style.lineHeight);
@@ -406,6 +413,44 @@ function taskMarkdown(text) {
     $('task').append(el);
   }
 }
+let previewWidth = null;
+function sizePreview() {
+  const available = $('preview-stage').clientWidth;
+  if (!available) return;
+  const width = previewWidth || available;
+  const scale = Math.min(1, available / width);
+  const frame = $('preview');
+  frame.style.width = width + 'px';
+  frame.style.height = '720px';
+  frame.style.transform = 'scale(' + scale + ')';
+  $('preview-stage').style.height = (720 * scale) + 'px';
+  $('preview-size').textContent = Math.round(width) + ' × 720 px · ' + Math.round(scale * 100) + '%';
+  $('preview-width').value = Math.round(width);
+}
+$('preview-device').onchange = () => {
+  if ($('preview-device').value === 'custom') return;
+  previewWidth = $('preview-device').value === 'fit' ? null : Number($('preview-device').value);
+  sizePreview();
+};
+$('preview-width').onchange = () => {
+  if (!$('preview-width').reportValidity()) return;
+  previewWidth = Number($('preview-width').value);
+  $('preview-device').value = ['390', '768', '1280'].includes(String(previewWidth)) ? String(previewWidth) : 'custom';
+  sizePreview();
+};
+function expandPreview(expand) {
+  document.querySelector('.output').classList.toggle('expanded', expand);
+  $('expand-preview').setAttribute('aria-expanded', String(expand));
+  $('expand-preview').textContent = expand ? 'Close expanded preview' : 'Expand preview';
+  sizePreview();
+}
+$('expand-preview').onclick = () => expandPreview($('expand-preview').getAttribute('aria-expanded') !== 'true');
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && $('expand-preview').getAttribute('aria-expanded') === 'true') {
+    expandPreview(false); $('expand-preview').focus();
+  }
+});
+new ResizeObserver(sizePreview).observe($('preview-stage'));
 async function preview(snapshot = { ...sources }) {
   const result = await api('/api/preview', { slug, files: snapshot });
   $('preview').src = result.url;
